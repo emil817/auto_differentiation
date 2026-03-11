@@ -20,6 +20,10 @@ def createAST(formula: str):
 
 
 def find_first_var(formula):
+    """
+    Функция для поиска любой переменной в выражении
+    """
+
     i = 0
     while i < len(formula):
         if formula[i] == '\\':
@@ -38,20 +42,32 @@ def find_first_var(formula):
 
 
 def find_deriv(formula: str, var: str = 'x', order: int = 1) -> str:
+    """
+    Функция для поиска производной по переменной, заданного порядка
+    """
+
     ast = createAST(formula)
 
     # Берем производную n раз
     for i in range(order):
-        ast = ast.diff(var)
-        
+        ast = ast.diff(var).simplify()
+
     return ast.latex()
 
 
 def der_by_var(formula: str, var: str) -> str:
+    """
+    Функция для поиска производной по переменной
+    """
+
     return find_deriv(formula, var)
 
 
 def der(formula: str) -> str:
+    """
+    Функция для поиска производной по одной из переменных
+    """
+
     var = find_first_var(formula)
 
     if var == None:
@@ -59,6 +75,3 @@ def der(formula: str) -> str:
         return "0"
 
     return find_deriv(formula, var)
-
-
-print(der("x^2 + x"))

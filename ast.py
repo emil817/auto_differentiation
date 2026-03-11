@@ -21,6 +21,13 @@ class Node:
         """
 
         raise NotImplementedError
+    
+    def simplify(self):
+        """
+        Метод для упрощения узла
+        """
+
+        return self
 
 
 class Const(Node):
@@ -77,6 +84,23 @@ class Add(Node):
         
     def latex(self):
         return f"{self.left.latex()} + {self.right.latex()}"
+    
+    def simplify(self):
+        left = self.left.simplify()
+        right = self.right.simplify()
+
+        if isinstance(left, Const) and isinstance(right, Const):
+            return Const(left.value + right.value)
+        
+        if isinstance(left, Const):
+            if left.value == 0:
+                return right
+        
+        if isinstance(right, Const):
+            if right.value == 0:
+                return left
+        
+        return Add(left, right)
 
 
 class Sub(Node):
@@ -94,6 +118,23 @@ class Sub(Node):
             return f"{self.left.latex()} - ({self.right.latex()})"
 
         return f"{self.left.latex()} - {self.right.latex()}"
+    
+    def simplify(self):
+        left = self.left.simplify()
+        right = self.right.simplify()
+
+        if isinstance(left, Const) and isinstance(right, Const):
+            return Const(left.value - right.value)
+
+        if isinstance(left, Const):
+            if left.value == 0:
+                return Neg(right)
+
+        if isinstance(right, Const):
+            if right.value == 0:
+                return left
+
+        return Sub(left, right)
 
 
 class Mul(Node):
@@ -119,6 +160,27 @@ class Mul(Node):
             right = self.right.latex()
 
         return f"{left} * {right}"
+    
+    def simplify(self):
+        left = self.left.simplify()
+        right = self.right.simplify()
+
+        if isinstance(left, Const) and isinstance(right, Const):
+            return Const(left.value * right.value)
+
+        if isinstance(left, Const):
+            if left.value == 0:
+                return Const(0)
+            if left.value == 1:
+                return right
+
+        if isinstance(right, Const):
+            if right.value == 0:
+                return Const(0)
+            if right.value == 1:
+                return left
+
+        return Mul(left, right)
 
 
 class Div(Node):
@@ -134,9 +196,23 @@ class Div(Node):
         num = Sub(Mul(u.diff(var), v), Mul(u, v.diff(var)))
         den = Pow(v, Const(2))
         return Div(num, den)
-        
+
     def latex(self):
         return "\\frac{" + self.left.latex() + "}{" + self.right.latex() + "}"
+
+    def simplify(self):
+        left = self.left.simplify()
+        right = self.right.simplify()
+
+        if isinstance(left, Const):
+            if left.value == 0:
+                return Const(0)
+
+        if isinstance(right, Const):
+            if right.value == 1:
+                return left
+
+        return Div(left, right)
 
 
 class Pow(Node):
@@ -167,6 +243,24 @@ class Pow(Node):
 
         return self.left.latex() + "^{" + self.right.latex() + "}"
 
+    def simplify(self):
+        left = self.left.simplify()
+        right = self.right.simplify()
+
+        if isinstance(right, Const):
+            if right.value == 0:
+                return Const(1)
+            if right.value == 1:
+                return left
+
+        if isinstance(left, Const):
+            if left.value == 0:
+                return Const(0)
+            if left.value == 1:
+                return Const(1)      
+
+        return Pow(left, right)
+
 
 class Log(Node):
     precedence = 4
@@ -182,6 +276,9 @@ class Log(Node):
 
     def latex(self):
         return "\\log_{" + self.base.latex()+ "}" + f"({self.arg.latex()})"
+    
+    def simplify(self):
+        return Log(self.base.simplify(), self.arg.simplify())
 
 
 class Neg(Node):
@@ -196,6 +293,13 @@ class Neg(Node):
 
     def latex(self):
         return f"-({self.arg.latex()})"
+    
+    def simplify(self):
+        a = self.arg.simplify()
+        if isinstance(a, Const):
+            return Const(-a.value)
+
+        return Neg(a)
 
 
 class FuncNode(Node):
@@ -208,6 +312,9 @@ class FuncNode(Node):
 
     def latex(self):
         return f"\\{self.func_name}({self.arg.latex()})"
+
+    def simplify(self):
+        return self.__class__(self.arg.simplify())
 
 
 class Sin(FuncNode):
