@@ -19,7 +19,7 @@ def createAST(formula: str):
     return parser.parse_to_ast(tokens)
 
 
-def find_first_var(formula):
+def find_first_var(formula: str) -> str:
     """
     Функция для поиска любой переменной в выражении
     """
@@ -41,6 +41,33 @@ def find_first_var(formula):
     return None
 
 
+def find_all_vars(formula: str) -> list[str]:
+    """
+    Функция для всех переменных в выражении
+    """
+
+    vars = []
+
+    i = 0
+    while i < len(formula):
+        if formula[i] == '\\':
+            i += 1
+            while i < len(formula) and formula[i].isalpha():
+                i += 1
+            continue
+
+        if formula[i].isalpha():
+            if formula[i].lower() == 'e':
+                i += 1
+                continue
+            
+            if formula[i] not in vars:
+                vars.append(formula[i])
+        i += 1
+
+    return vars
+
+
 def find_deriv(formula: str, var: str = 'x', order: int = 1) -> str:
     """
     Функция для поиска производной по переменной, заданного порядка
@@ -53,6 +80,21 @@ def find_deriv(formula: str, var: str = 'x', order: int = 1) -> str:
         ast = ast.diff(var).simplify()
 
     return ast.latex()
+
+
+def find_gradient(formula: str) -> list[str]:
+    """
+    Функция для поиска градиента
+    """
+
+    vars = sorted(find_all_vars(formula))
+
+    gradient = []
+    
+    for var in vars:
+        gradient.append(find_deriv(formula, var))
+
+    return gradient
 
 
 def der_by_var(formula: str, var: str) -> str:
