@@ -375,3 +375,9 @@ class Ln(FuncNode):
     func_name = "ln"
     def diff(self, var):
         return Div(self.arg.diff(var), self.arg)
+
+
+class Sqrt(FuncNode):
+    func_name = "sqrt"
+    def diff(self, var):
+        return Div(self.arg.diff(var), Mul(Const(2), Sqrt(self.arg)))

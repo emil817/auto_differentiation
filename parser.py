@@ -116,7 +116,7 @@ class Parser:
         func_map = {
             '\\sin': Sin, '\\cos': Cos, '\\tan': Tan, '\\cot': Cot,
             '\\sinh': Sinh, '\\cosh': Cosh, '\\tanh': Tanh, '\\coth': Coth,
-            '\\exp': Exp, '\\ln': Ln
+            '\\exp': Exp, '\\ln': Ln, '\\sqrt': Sqrt
         }
 
         if function in func_map:
